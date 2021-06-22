@@ -27,15 +27,11 @@ class UsuarioDaoTest {
 	private Usuario retorno;
 	private Faker fake = new Faker(new Locale("pt-BR"));
 	private String _userName;
-	private String _userEmail;
-	private String _userPassword;
 
 	@BeforeEach
 	public void setup() {
 		_userName = fake.name().username();
-		_userEmail = fake.internet().emailAddress(_userName);
-		_userPassword = fake.internet().password(true);
-		usuario = new Usuario(_userName,_userEmail, _userPassword);
+		usuario = new Usuario(_userName,fake.internet().emailAddress(_userName), fake.internet().password(true));
 
 		em = JPAUtil.getEntityManager();
 		em.getTransaction().begin();
@@ -53,9 +49,9 @@ class UsuarioDaoTest {
 		retorno = dao.buscarPorUsername(usuario.getNome());
 
 		assertNotNull(this.retorno);
-		assertEquals(_userName, this.retorno.getNome());
-		assertEquals(_userEmail, this.retorno.getEmail());
-		assertEquals(_userPassword, this.retorno.getSenha());
+		assertEquals(usuario.getNome(), this.retorno.getNome());
+		assertEquals(usuario.getEmail(), this.retorno.getEmail());
+		assertEquals(usuario.getSenha(), this.retorno.getSenha());
 	}
 
 	@Test
@@ -63,4 +59,9 @@ class UsuarioDaoTest {
 		assertThrows(NoResultException.class, () -> this.dao.buscarPorUsername(fake.name().username()));
 	}
 
+	@Test
+	void deveExcluirUsuarioCadastrado() {
+		dao.deletar(usuario);
+		assertThrows(NoResultException.class, () -> this.dao.buscarPorUsername(usuario.getNome()));
+	}
 }
