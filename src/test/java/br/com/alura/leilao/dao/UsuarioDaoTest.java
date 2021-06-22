@@ -3,10 +3,12 @@ package br.com.alura.leilao.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Locale;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,21 +29,39 @@ class UsuarioDaoTest {
 	private String _userPassword;
 
 	@Test
-	void deveBuscarUsuarioPeloUserName() {
+	void deveEncontrarUsuarioCadastrado() {
 		_userName = fake.name().username();
 		_userEmail = fake.internet().emailAddress(_userName);
 		_userPassword = fake.internet().password(true);
 		usuario = new Usuario(_userName,_userEmail, _userPassword);
+
 		em = JPAUtil.getEntityManager();
 		em.getTransaction().begin();
 		em.persist(usuario);
 		em.getTransaction().commit();
 		this.dao = new UsuarioDao(em);
 		retorno = dao.buscarPorUsername(usuario.getNome());
-		assertNotNull(retorno);
-		assertEquals(_userName, retorno.getNome());
-		assertEquals(_userEmail, retorno.getEmail());
-		assertEquals(_userPassword, retorno.getSenha());
+
+		assertNotNull(this.retorno);
+		assertEquals(_userName, this.retorno.getNome());
+		assertEquals(_userEmail, this.retorno.getEmail());
+		assertEquals(_userPassword, this.retorno.getSenha());
+	}
+
+	@Test
+	void naoDeveEncontrarUsuarioNaoCadastrado() {
+		_userName = fake.name().username();
+		_userEmail = fake.internet().emailAddress(_userName);
+		_userPassword = fake.internet().password(true);
+		usuario = new Usuario(_userName,_userEmail, _userPassword);
+
+		em = JPAUtil.getEntityManager();
+		em.getTransaction().begin();
+		em.persist(usuario);
+		em.getTransaction().commit();
+		this.dao = new UsuarioDao(em);
+
+		assertThrows(NoResultException.class, () -> this.dao.buscarPorUsername(fake.name().username()));
 	}
 
 }
