@@ -10,6 +10,8 @@ import java.util.Locale;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.github.javafaker.Faker;
@@ -28,8 +30,8 @@ class UsuarioDaoTest {
 	private String _userEmail;
 	private String _userPassword;
 
-	@Test
-	void deveEncontrarUsuarioCadastrado() {
+	@BeforeEach
+	public void setup() {
 		_userName = fake.name().username();
 		_userEmail = fake.internet().emailAddress(_userName);
 		_userPassword = fake.internet().password(true);
@@ -38,8 +40,16 @@ class UsuarioDaoTest {
 		em = JPAUtil.getEntityManager();
 		em.getTransaction().begin();
 		em.persist(usuario);
-		em.getTransaction().commit();
 		this.dao = new UsuarioDao(em);
+	}
+
+	@AfterEach
+	public void tearDown() {
+		em.getTransaction().getRollbackOnly();
+	}
+
+	@Test
+	void deveEncontrarUsuarioCadastrado() {
 		retorno = dao.buscarPorUsername(usuario.getNome());
 
 		assertNotNull(this.retorno);
@@ -50,17 +60,6 @@ class UsuarioDaoTest {
 
 	@Test
 	void naoDeveEncontrarUsuarioNaoCadastrado() {
-		_userName = fake.name().username();
-		_userEmail = fake.internet().emailAddress(_userName);
-		_userPassword = fake.internet().password(true);
-		usuario = new Usuario(_userName,_userEmail, _userPassword);
-
-		em = JPAUtil.getEntityManager();
-		em.getTransaction().begin();
-		em.persist(usuario);
-		em.getTransaction().commit();
-		this.dao = new UsuarioDao(em);
-
 		assertThrows(NoResultException.class, () -> this.dao.buscarPorUsername(fake.name().username()));
 	}
 
