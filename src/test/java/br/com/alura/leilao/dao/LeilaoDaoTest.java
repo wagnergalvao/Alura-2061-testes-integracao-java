@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 
 import com.github.javafaker.Faker;
 
+import br.com.alura.leilao.dao.util.builder.LeilaoBuilder;
+import br.com.alura.leilao.dao.util.builder.UsuarioBuilder;
 import br.com.alura.leilao.model.Leilao;
 import br.com.alura.leilao.model.Usuario;
 import br.com.alura.leilao.util.JPAUtil;
@@ -32,14 +34,22 @@ class LeilaoDaoTest {
 	@BeforeEach
 	public void setup() {
 		_userName = fake.name().username();
-		usuario = new Usuario(_userName, fake.internet().emailAddress(_userName), fake.internet().password(true));
+		usuario = new UsuarioBuilder()
+				.comUserName(_userName)
+				.comEmail(fake.internet().emailAddress(_userName))
+				.comSenha(fake.internet().password(true))
+				.criar();
 
 		em = JPAUtil.getEntityManager();
 		em.getTransaction().begin();
 		em.persist(usuario);
 		this.dao = new LeilaoDao(em);
-		leilao = new Leilao(fake.commerce().productName(),
-				new BigDecimal(fake.commerce().price(100, 1000).replace(",", ".")), LocalDate.now(), usuario);
+		leilao = new LeilaoBuilder()
+				.comNome(fake.commerce().productName())
+				.comValorInicial(fake.commerce().price(100, 1000).replace(",", "."))
+				.comDataInicio(LocalDate.now())
+				.comUsuario(usuario)
+				.criar();
 		leilao = dao.salvar(leilao);
 		leilaoSalvo = dao.buscarPorId(leilao.getId());
 	}

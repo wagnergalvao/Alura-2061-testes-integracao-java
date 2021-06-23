@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.javafaker.Faker;
 
+import br.com.alura.leilao.dao.util.builder.UsuarioBuilder;
 import br.com.alura.leilao.model.Usuario;
 import br.com.alura.leilao.util.JPAUtil;
 
@@ -24,14 +25,17 @@ class UsuarioDaoTest {
 	private EntityManager em;
 	private UsuarioDao dao;
 	private Usuario usuario;
-	private Usuario retorno;
 	private Faker fake = new Faker(new Locale("pt-BR"));
 	private String _userName;
 
 	@BeforeEach
 	public void setup() {
 		_userName = fake.name().username();
-		usuario = new Usuario(_userName,fake.internet().emailAddress(_userName), fake.internet().password(true));
+		usuario = new UsuarioBuilder()
+				.comUserName(_userName)
+				.comEmail(fake.internet().emailAddress(_userName))
+				.comSenha(fake.internet().password(true))
+				.criar();
 
 		em = JPAUtil.getEntityManager();
 		em.getTransaction().begin();
@@ -46,12 +50,12 @@ class UsuarioDaoTest {
 
 	@Test
 	void deveEncontrarUsuarioCadastrado() {
-		retorno = dao.buscarPorUsername(usuario.getNome());
+		Usuario _retorno = dao.buscarPorUsername(usuario.getNome());
 
-		assertNotNull(this.retorno);
-		assertEquals(usuario.getNome(), this.retorno.getNome());
-		assertEquals(usuario.getEmail(), this.retorno.getEmail());
-		assertEquals(usuario.getSenha(), this.retorno.getSenha());
+		assertNotNull(_retorno);
+		assertEquals(usuario.getNome(), _retorno.getNome());
+		assertEquals(usuario.getEmail(), _retorno.getEmail());
+		assertEquals(usuario.getSenha(), _retorno.getSenha());
 	}
 
 	@Test
